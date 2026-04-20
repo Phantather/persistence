@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АИС Тестирование и конкурс руководителей</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{overflow:hidden;}
+  body{font-family:'Inter','Segoe UI',sans-serif;background:#0f172a;color:#fff;overflow:hidden;height:100vh;}
+  .slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 60px;opacity:0;transform:scale(0.95);transition:opacity 0.7s,transform 0.7s;pointer-events:none;overflow-y:auto;background:linear-gradient(160deg,#0f172a 0%,#1e293b 40%,#162544 100%);}
+  .slide::before{content:'';position:fixed;top:0;left:0;width:100%;height:100%;background:radial-gradient(circle at 30% 50%,rgba(59,130,246,0.07) 0%,transparent 50%),radial-gradient(circle at 70% 30%,rgba(139,92,246,0.05) 0%,transparent 50%);z-index:1;pointer-events:none;}
+  .slide.active{opacity:1;transform:scale(1);pointer-events:all;}
+  .slide *{color:#fff;}
+  .sc{max-width:1200px;width:100%;text-align:center;position:relative;z-index:2;}
+  h1{font-size:2.4em;margin-bottom:16px;font-weight:800;letter-spacing:-0.02em;}
+  h2{font-size:1.9em;margin-bottom:14px;font-weight:700;}
+  h3{font-size:1.2em;margin-bottom:8px;font-weight:600;}
+  p,li{font-size:1em;line-height:1.7;}
+  .label{font-size:0.75em;text-transform:uppercase;letter-spacing:0.15em;opacity:0.5;font-weight:600;margin-bottom:8px;}
+  .sub{font-size:1.1em;opacity:0.7;font-weight:300;}
+  .screenshot{border-radius:12px;max-width:85%;max-height:48vh;object-fit:contain;margin-top:14px;border:2px solid rgba(255,255,255,0.15);background:#fff;padding:5px;box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+  .cg{background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);border-radius:16px;padding:20px 24px;min-width:180px;max-width:280px;border:1px solid rgba(255,255,255,0.1);text-align:left;transition:transform 0.3s;}
+  .cg:hover{transform:translateY(-4px);}
+  .ci{font-size:2em;margin-bottom:8px;display:block;}
+  .cards{display:flex;flex-wrap:wrap;gap:14px;justify-content:center;margin-top:18px;}
+  .dp{background:rgba(255,255,255,0.06);border-radius:20px;padding:24px;box-shadow:0 12px 48px rgba(0,0,0,0.3);width:100%;max-width:1050px;text-align:left;border:1px solid rgba(255,255,255,0.1);}
+  .dp h3{color:#e2e8f0 !important;margin-bottom:10px;}
+  .dt{width:100%;border-collapse:collapse;margin-top:10px;background:rgba(255,255,255,0.05);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,0.08);}
+  .dt th{background:rgba(59,130,246,0.3);color:#fff !important;padding:11px 14px;text-align:left;font-weight:600;font-size:0.88em;}
+  .dt td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.88em;color:#cbd5e1 !important;}
+  .dt tr:last-child td{border-bottom:none;}
+  .dt tr:hover td{background:rgba(255,255,255,0.04);}
+  .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.75em;font-weight:600;}
+  .bg{background:rgba(16,185,129,0.25);color:#6ee7b7 !important;}
+  .br{background:rgba(239,68,68,0.25);color:#fca5a5 !important;}
+  .by{background:rgba(245,158,11,0.25);color:#fcd34d !important;}
+  .bb{background:rgba(59,130,246,0.25);color:#93c5fd !important;}
+  .steps{display:flex;flex-direction:column;gap:12px;margin-top:14px;text-align:left;}
+  .step{display:flex;align-items:flex-start;gap:14px;background:rgba(255,255,255,0.07);border-radius:14px;padding:14px 18px;border:1px solid rgba(255,255,255,0.07);}
+  .sn{background:rgba(59,130,246,0.3);color:#93c5fd !important;font-weight:800;font-size:1.1em;width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .flow{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:18px;}
+  .fi{background:rgba(255,255,255,0.1);border-radius:10px;padding:10px 14px;font-weight:600;font-size:0.85em;border:1px solid rgba(255,255,255,0.12);}
+  .fa{font-size:1.2em;opacity:0.4;}
+  ul.fl{list-style:none;text-align:left;max-width:700px;margin:0 auto;}
+  ul.fl li{padding:8px 0 8px 28px;position:relative;font-size:0.95em;}
+  ul.fl li::before{content:'';position:absolute;left:0;top:12px;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,0.35);}
+  .btn{display:inline-block;padding:12px 28px;border-radius:10px;font-size:0.95em;font-weight:600;cursor:pointer;border:none;transition:all 0.3s;margin:4px;font-family:inherit;background:#3b82f6;color:#fff;}
+  .btn:hover{background:#2563eb;transform:translateY(-2px);box-shadow:0 8px 20px rgba(59,130,246,0.4);}
+  .nav{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;z-index:100;align-items:center;background:rgba(15,23,42,0.85);backdrop-filter:blur(16px);padding:8px 20px;border-radius:50px;border:1px solid rgba(255,255,255,0.1);}
+  .nav button{background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1em;transition:all 0.3s;display:flex;align-items:center;justify-content:center;}
+  .nav button:hover{background:rgba(255,255,255,0.25);}
+  .nav button:disabled{opacity:0.2;cursor:default;}
+  .nav .ctr{color:rgba(255,255,255,0.7);font-size:0.85em;padding:0 10px;min-width:55px;text-align:center;}
+  .pbar{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,#3b82f6,#8b5cf6,#ec4899);transition:width 0.5s;z-index:100;}
+  .callout{background:rgba(59,130,246,0.12);border:1px solid rgba(59,130,246,0.25);border-radius:14px;padding:16px 22px;text-align:left;display:flex;gap:14px;align-items:center;}
+  .callout-warn{background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.25);}
+  .callout-red{background:rgba(239,68,68,0.12);border-color:rgba(239,68,68,0.25);}
+  .callout-green{background:rgba(16,185,129,0.12);border-color:rgba(16,185,129,0.25);}
+  .callout .ico{font-size:2em;flex-shrink:0;}
+</style>
+</head>
+<body>
+<div class="pbar" id="progressBar"></div>
+
+<!-- SLIDE 0: Title -->
+<div class="slide active" id="s0">
+<div class="sc">
+  <p class="label">Министерство просвещения Кыргызской Республики</p>
+  <h1 style="font-size:2.1em;line-height:1.3;">Автоматизированная информационная система<br>тестирования и конкурсного отбора<br>руководителей образовательных организаций</h1>
+  <p class="sub" style="margin-top:14px;">ДРКО КР &bull; АИС &laquo;Мугалим&raquo;</p>
+  <div style="margin-top:36px;"><span class="btn" onclick="next()">Начать просмотр &rarr;</span></div>
+  <p style="margin-top:36px;opacity:0.25;font-size:0.85em;">2026</p>
+</div></div>
+
+<!-- SLIDE 1: General flow -->
+<div class="slide" id="s1">
+<div class="sc">
+  <p class="label">Обзор</p>
+  <h2>Общий процесс: от теста до назначения</h2>
+  <div class="flow" style="margin:20px 0;">
+    <div class="fi" style="background:rgba(59,130,246,0.3);">&#128197; План тестов</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(139,92,246,0.3);">&#128221; Подача заявок</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(14,165,233,0.3);">&#9878; Проверка ДРКО</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(16,185,129,0.3);">&#128221; Тестирование</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(245,158,11,0.3);">&#128196; Сертификат + QR</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(236,72,153,0.3);">&#127942; Конкурс</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(16,185,129,0.4);">&#128220; Приказ</div>
+  </div>
+  <div class="cards" style="margin-top:22px;">
+    <div class="cg"><span class="ci">&#127979;</span><h3>4 типа организаций</h3><p style="opacity:0.6;font-size:0.85em;">Дошкольные, общеобразовательные, НПО, внешкольные</p></div>
+    <div class="cg"><span class="ci">&#128295;</span><h3>Автосбор данных</h3><p style="opacity:0.6;font-size:0.85em;">Паспорт, диплом, стаж, справки МВД/МЗ &mdash; через сервисы автоматически</p></div>
+    <div class="cg"><span class="ci">&#128274;</span><h3>Сертификат с QR</h3><p style="opacity:0.6;font-size:0.85em;">Уникальный номер, срок действия, проверка по QR-коду</p></div>
+    <div class="cg"><span class="ci">&#9878;</span><h3>Прозрачный конкурс</h3><p style="opacity:0.6;font-size:0.85em;">Побеждает максимальный балл, при равенстве &mdash; кто первый подал</p></div>
+  </div>
+</div></div>
+
+<!-- SLIDE 2: Step 1 - Plan -->
+<div class="slide" id="s2">
+<div class="sc">
+  <p class="label">Шаг 1</p>
+  <h2>Утверждение плана тестирования</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">ДРКО КР по согласованию с Министерством просвещения утверждает даты тестов по 4 типам организаций (по плану 2 раза в год по каждому типу)</p>
+  <img src="konkurs_images/image2.png" class="screenshot" alt="Создание плана">
+  <div class="cards" style="margin-top:14px;">
+    <div class="cg"><span class="ci">&#128197;</span><h3>Год и дата теста</h3></div>
+    <div class="cg"><span class="ci">&#127979;</span><h3>Тип организации</h3></div>
+    <div class="cg"><span class="ci">&#128337;</span><h3>Дедлайн заявок</h3></div>
+    <div class="cg"><span class="ci">&#128100;</span><h3>Ответственный</h3></div>
+  </div>
+</div></div>
+
+<!-- SLIDE 3: Plan list -->
+<div class="slide" id="s3">
+<div class="sc">
+  <p class="label">Шаг 1.1</p>
+  <h2>Список планируемых и завершённых тестов</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Все тесты с их статусами: процесс приёма документов, завершённый и т.д.</p>
+  <img src="konkurs_images/image3.png" class="screenshot" alt="Список тестов">
+  <div style="display:flex;gap:12px;justify-content:center;margin-top:14px;">
+    <span class="badge bg" style="font-size:0.85em;padding:6px 14px;">&#9989; Процесс приёма документов</span>
+    <span class="badge by" style="font-size:0.85em;padding:6px 14px;">&#128230; Завершённый</span>
+  </div>
+</div></div>
+
+<!-- SLIDE 4: Applications -->
+<div class="slide" id="s4">
+<div class="sc">
+  <p class="label">Шаг 2</p>
+  <h2>Подача заявок на тестирование</h2>
+  <p style="opacity:0.6;margin-bottom:10px;">После утверждения плана открывается ближайший тест. Кандидаты подают заявки &mdash; все данные собираются автоматически</p>
+  <img src="konkurs_images/image4.png" class="screenshot" alt="Заявки на тестирование">
+  <div class="callout" style="max-width:850px;margin:16px auto 0;">
+    <div class="ico">&#9889;</div>
+    <div>
+      <strong>Автоматический сбор данных</strong>
+      <p style="opacity:0.7;font-size:0.88em;margin-top:4px;">Кандидат ничего не загружает &mdash; паспорт, фото, диплом, трудовая книжка, стаж формируются автоматически из АИС &laquo;Мугалим&raquo;. Справки МВД КР и МЗ КР запрашиваются через сервисы автоматически.</p>
+    </div>
+  </div>
+</div></div>
+
+<!-- SLIDE 5: Auto documents -->
+<div class="slide" id="s5">
+<div class="sc">
+  <p class="label">Шаг 2.1</p>
+  <h2>Документы кандидата &mdash; автосбор</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Все необходимые документы собираются через сервисы в автоматическом режиме</p>
+  <img src="konkurs_images/image12.png" class="screenshot" alt="Документы кандидата">
+  <div class="cards" style="margin-top:14px;">
+    <div class="cg" style="max-width:200px;"><span class="ci">&#128179;</span><h3 style="font-size:1em;">ID-карта</h3><p style="opacity:0.5;font-size:0.8em;">СМЭВ Тундук</p></div>
+    <div class="cg" style="max-width:200px;"><span class="ci">&#127891;</span><h3 style="font-size:1em;">Диплом</h3><p style="opacity:0.5;font-size:0.8em;">АИС Мугалим</p></div>
+    <div class="cg" style="max-width:200px;"><span class="ci">&#128214;</span><h3 style="font-size:1em;">Трудовая</h3><p style="opacity:0.5;font-size:0.8em;">АИС Мугалим</p></div>
+    <div class="cg" style="max-width:200px;"><span class="ci">&#128110;</span><h3 style="font-size:1em;">МВД КР</h3><p style="opacity:0.5;font-size:0.8em;">Судимость</p></div>
+    <div class="cg" style="max-width:200px;"><span class="ci">&#127973;</span><h3 style="font-size:1em;">МЗ КР</h3><p style="opacity:0.5;font-size:0.8em;">Нарко/психучёт</p></div>
+  </div>
+</div></div>
+
+<!-- SLIDE 6: DRKO review -->
+<div class="slide" id="s6">
+<div class="sc">
+  <p class="label">Шаг 3</p>
+  <h2>Проверка ДРКО &mdash; допуск или отказ</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Комиссия ДРКО проверяет максимально отфильтрованные документы и принимает решение: допустить, вернуть на доработку или отказать</p>
+  <img src="konkurs_images/image5.png" class="screenshot" alt="Кандидаты">
+  <div class="cards" style="margin-top:14px;">
+    <div class="cg" style="max-width:220px;"><span class="ci" style="color:#6ee7b7;">&#10003;</span><h3 style="font-size:1em;">Допущен(а)</h3><p style="opacity:0.5;font-size:0.8em;">Все документы в порядке</p></div>
+    <div class="cg" style="max-width:220px;"><span class="ci" style="color:#fcd34d;">&#9200;</span><h3 style="font-size:1em;">Ожидает проверку</h3><p style="opacity:0.5;font-size:0.8em;">Документы на рассмотрении</p></div>
+    <div class="cg" style="max-width:220px;"><span class="ci" style="color:#f87171;">&#10007;</span><h3 style="font-size:1em;">Отказано</h3><p style="opacity:0.5;font-size:0.8em;">Не соответствует требованиям</p></div>
+    <div class="cg" style="max-width:220px;"><span class="ci" style="color:#93c5fd;">&#128260;</span><h3 style="font-size:1em;">На доработку</h3><p style="opacity:0.5;font-size:0.8em;">Возврат для исправлений</p></div>
+  </div>
+</div></div>
+
+<!-- SLIDE 7: Passing scores -->
+<div class="slide" id="s7">
+<div class="sc">
+  <p class="label">Шаг 3.1</p>
+  <h2>Проходные баллы и стаж по типу организации</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Утверждённые минимальные требования для прохождения тестирования</p>
+  <img src="konkurs_images/image8.png" class="screenshot" alt="Проходные баллы">
+  <div class="dp" style="max-width:900px;margin:16px auto 0;">
+    <table class="dt">
+      <thead><tr><th>Тип организации</th><th style="text-align:center;">Проходной балл</th><th style="text-align:center;">Вед. должность</th><th style="text-align:center;">Гл. должность</th><th style="text-align:center;">Методист</th><th style="text-align:center;">Пед. стаж</th></tr></thead>
+      <tbody>
+        <tr><td>Дошкольные</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">50</td><td style="text-align:center;">2</td><td style="text-align:center;">2</td><td style="text-align:center;">2</td><td style="text-align:center;">5</td></tr>
+        <tr><td>Общеобразовательные</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">50</td><td style="text-align:center;">2</td><td style="text-align:center;">3</td><td style="text-align:center;">3</td><td style="text-align:center;">5</td></tr>
+        <tr><td>НПО</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">50</td><td style="text-align:center;">2</td><td style="text-align:center;">3</td><td style="text-align:center;">3</td><td style="text-align:center;">5</td></tr>
+        <tr><td>Внешкольные</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">50</td><td style="text-align:center;">2</td><td style="text-align:center;">3</td><td style="text-align:center;">3</td><td style="text-align:center;">5</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div></div>
+
+<!-- SLIDE 8: Testing & Results -->
+<div class="slide" id="s8">
+<div class="sc">
+  <p class="label">Шаг 4</p>
+  <h2>Тестирование и результаты</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Допущенные кандидаты проходят тест в назначенный день и место. Результаты загружаются автоматически.</p>
+  <img src="konkurs_images/image7.png" class="screenshot" alt="Результаты">
+  <div style="display:flex;gap:16px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+    <div class="callout-green callout" style="max-width:400px;">
+      <div class="ico">&#10003;</div>
+      <div><strong style="color:#6ee7b7 !important;">Балл &ge; проходного</strong><p style="opacity:0.7;font-size:0.85em;">Генерируется сертификат с уникальным номером и QR-кодом</p></div>
+    </div>
+    <div class="callout-red callout" style="max-width:400px;">
+      <div class="ico">&#10007;</div>
+      <div><strong style="color:#fca5a5 !important;">Балл &lt; проходного</strong><p style="opacity:0.7;font-size:0.85em;">Кандидат может повторно подать на следующий тест</p></div>
+    </div>
+  </div>
+</div></div>
+
+<!-- SLIDE 9: Certificate -->
+<div class="slide" id="s9">
+<div class="sc">
+  <p class="label">Шаг 5</p>
+  <h2>Электронный сертификат</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">По результатам тестирования автоматически генерируется электронный сертификат с уникальным номером и QR-кодом</p>
+  <div style="display:flex;gap:24px;justify-content:center;align-items:center;flex-wrap:wrap;">
+    <img src="konkurs_images/image9.png" class="screenshot" style="max-width:450px;max-height:45vh;" alt="Сертификат">
+    <div style="text-align:left;max-width:350px;">
+      <div class="steps">
+        <div class="step"><div class="sn">&#128196;</div><div><strong>Уникальный номер</strong><p style="opacity:0.7;font-size:0.85em;">Каждый сертификат имеет уникальный ID</p></div></div>
+        <div class="step"><div class="sn">&#128197;</div><div><strong>Срок действия</strong><p style="opacity:0.7;font-size:0.85em;">Сертификат действует определённый срок (напр. 2 года)</p></div></div>
+        <div class="step"><div class="sn">&#128274;</div><div><strong>QR-код верификации</strong><p style="opacity:0.7;font-size:0.85em;">Сканирование показывает статус: действующий, истёк или аннулирован</p></div></div>
+        <div class="step"><div class="sn">&#10060;</div><div><strong>Аннулирование</strong><p style="opacity:0.7;font-size:0.85em;">При победе в конкурсе или истечении срока &mdash; сертификат аннулируется</p></div></div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- SLIDE 10: Certificate list -->
+<div class="slide" id="s10">
+<div class="sc">
+  <p class="label">Шаг 5.1</p>
+  <h2>Список выданных сертификатов</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Реестр всех сертификатов с баллами, номерами и статусами</p>
+  <img src="konkurs_images/image6.png" class="screenshot" alt="Сертификаты">
+</div></div>
+
+<!-- SLIDE 11: Candidate cabinet -->
+<div class="slide" id="s11">
+<div class="sc">
+  <p class="label">Кабинет кандидата</p>
+  <h2>Личный кабинет: все заявки онлайн</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Кандидат отслеживает все свои заявки в режиме реального времени: статусы, решения, доработки, отказы</p>
+  <img src="konkurs_images/image10.png" class="screenshot" alt="Кабинет кандидата">
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap;">
+    <span class="badge by" style="padding:6px 14px;font-size:0.85em;">&#128992; Заявка на проверке</span>
+    <span class="badge bg" style="padding:6px 14px;font-size:0.85em;">&#128994; Допущен к тестированию</span>
+    <span class="badge br" style="padding:6px 14px;font-size:0.85em;">&#10060; Заявка не рассмотрена</span>
+  </div>
+</div></div>
+
+<!-- SLIDE 12: Contest announcement -->
+<div class="slide" id="s12">
+<div class="sc">
+  <p class="label">Шаг 6</p>
+  <h2>Конкурс на должности руководителей</h2>
+  <p style="opacity:0.6;margin-bottom:12px;">Система ежемесячно обновляет данные и объявляет конкурсы на вакантные должности руководителей образовательных организаций</p>
+  <img src="konkurs_images/image11.png" class="screenshot" alt="Конкурсы">
+  <div class="callout" style="max-width:850px;margin:16px auto 0;">
+    <div class="ico">&#128218;</div>
+    <div>
+      <strong>Как объявляется конкурс?</strong>
+      <p style="opacity:0.7;font-size:0.88em;margin-top:4px;">Школьное управление, управление проф. лицеев, внешкольное управление, РайОО и ГорОО держат актуальность статусов руководителей. Система сама по статусам определяет вакансии и автоматически объявляет конкурс: где и.о., нет руководителя, срок полномочий истёк и т.д.</p>
+    </div>
+  </div>
+</div></div>
+
+<!-- SLIDE 13: Contest logic -->
+<div class="slide" id="s13">
+<div class="sc">
+  <p class="label">Шаг 7</p>
+  <h2>Логика определения победителя</h2>
+  <p style="opacity:0.6;margin-bottom:16px;">Участвовать может только обладатель действующего (активного) сертификата</p>
+  <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;">
+    <div style="flex:1;max-width:500px;">
+      <div class="steps">
+        <div class="step"><div class="sn">1</div><div><strong>Подача сертификата</strong><p style="opacity:0.7;font-size:0.85em;">Кандидат с активным сертификатом подаёт заявку на конкурс</p></div></div>
+        <div class="step"><div class="sn">2</div><div><strong>Закрытие приёма: 16:00</strong><p style="opacity:0.7;font-size:0.85em;">В день окончания в 16:00 приём заявок закрывается автоматически</p></div></div>
+        <div class="step"><div class="sn">3</div><div><strong>Определение победителя</strong><p style="opacity:0.7;font-size:0.85em;">Побеждает кандидат с максимальным баллом по сертификату</p></div></div>
+        <div class="step"><div class="sn">4</div><div><strong>Издание приказа</strong><p style="opacity:0.7;font-size:0.85em;">В течение суток победитель передаётся ответственным сотрудникам (РайОО, ГорОО) для издания приказа. В личном кабинете ответственных сотрудников появляется список выигравших кандидатов по адресату.</p></div></div>
+      </div>
+    </div>
+    <div style="flex:1;max-width:420px;">
+      <div class="callout-warn callout" style="margin-bottom:14px;">
+        <div class="ico">&#9878;</div>
+        <div>
+          <strong style="color:#fcd34d !important;">При равных баллах</strong>
+          <p style="opacity:0.7;font-size:0.85em;margin-top:4px;">1. Приоритет тому, кто подал заявку <strong>первым</strong><br>2. Если и время одинаковое &mdash; у кого <strong>больше стаж</strong></p>
+        </div>
+      </div>
+      <div class="callout-red callout" style="margin-bottom:14px;">
+        <div class="ico">&#10060;</div>
+        <div>
+          <strong style="color:#fca5a5 !important;">Аннулирование сертификата</strong>
+          <p style="opacity:0.7;font-size:0.85em;margin-top:4px;">При победе в конкурсе сертификат аннулируется. Также аннулируется при истечении срока действия.</p>
+        </div>
+      </div>
+      <div class="callout-green callout">
+        <div class="ico">&#128220;</div>
+        <div>
+          <strong style="color:#6ee7b7 !important;">Приказ о назначении</strong>
+          <p style="opacity:0.7;font-size:0.85em;margin-top:4px;">В личном кабинете ответственных сотрудников (РайОО, ГорОО, управления) появляется список выигравших кандидатов по адресату &mdash; они издают приказ о назначении</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div></div>
+
+<!-- SLIDE 14: Final -->
+<div class="slide" id="s14">
+<div class="sc">
+  <p class="label">Итого</p>
+  <h2 style="font-size:1.7em;">Полный цикл: от плана теста до назначения руководителя</h2>
+  <div class="flow" style="margin:18px 0;">
+    <div class="fi" style="background:rgba(59,130,246,0.3);">&#128197; План</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(139,92,246,0.3);">&#128221; Заявки</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(14,165,233,0.3);">&#128295; Автосбор</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(16,185,129,0.3);">&#9878; ДРКО</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(245,158,11,0.3);">&#128221; Тест</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(236,72,153,0.3);">&#128196; Сертификат</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(139,92,246,0.3);">&#127942; Конкурс</div><div class="fa">&rarr;</div>
+    <div class="fi" style="background:rgba(16,185,129,0.4);">&#128220; Приказ</div>
+  </div>
+  <ul class="fl" style="margin-top:20px;">
+    <li>План тестирования по 4 типам организаций (2 раза в год)</li>
+    <li>Автоматический сбор данных: паспорт, диплом, стаж, справки МВД/МЗ</li>
+    <li>ДРКО проверяет отфильтрованные документы &mdash; допуск или отказ</li>
+    <li>Тестирование &rarr; результаты &rarr; электронный сертификат с QR</li>
+    <li>Ежемесячные конкурсы на вакантные должности руководителей</li>
+    <li>Побеждает максимальный балл, при равенстве &mdash; кто первый подал / стаж</li>
+    <li>Сертификат аннулируется при победе или истечении срока</li>
+    <li>Приказ о назначении издаётся в течение 3 суток &mdash; список победителей поступает в личный кабинет ответственных по адресату</li>
+  </ul>
+  <div style="margin-top:28px;">
+    <span class="btn" style="font-size:1.05em;padding:14px 36px;">Спасибо за внимание!</span>
+  </div>
+</div></div>
+
+<!-- Navigation -->
+<div class="nav">
+  <a href="index.html" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1em;transition:all 0.3s;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="На главную">&#8962;</a>
+  <button onclick="prev()" id="pb" disabled>&#9664;</button>
+  <div class="ctr"><span id="cs">1</span> / <span id="ts">15</span></div>
+  <button onclick="next()" id="nb">&#9654;</button>
+</div>
+
+<script>
+let c=0;const S=document.querySelectorAll('.slide'),T=S.length;
+document.getElementById('ts').textContent=T;
+function go(n){S.forEach(s=>s.classList.remove('active'));S[n].classList.add('active');c=n;
+document.getElementById('cs').textContent=n+1;document.getElementById('pb').disabled=n===0;
+document.getElementById('nb').disabled=n===T-1;document.getElementById('progressBar').style.width=((n+1)/T*100)+'%';}
+function next(){if(c<T-1)go(c+1);}function prev(){if(c>0)go(c-1);}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next();}if(e.key==='ArrowLeft'){e.preventDefault();prev();}});
+go(0);
+</script>
+</body>
+</html>

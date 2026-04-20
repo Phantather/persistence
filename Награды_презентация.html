@@ -1,0 +1,1196 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АИС Награждения педагогов</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { overflow: hidden; }
+  body { font-family: 'Inter', 'Segoe UI', sans-serif; background: #0f172a; color: #333; overflow: hidden; height: 100vh; }
+
+  .slide {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    padding: 40px 60px;
+    opacity: 0; transform: scale(0.95);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+  .slide.active { opacity: 1; transform: scale(1); pointer-events: all; }
+
+  /* Unified background */
+  .bg-hero, .bg-white, .bg-blue, .bg-dark, .bg-green, .bg-red, .bg-purple,
+  .bg-teal, .bg-amber, .bg-indigo, .bg-rose {
+    background: linear-gradient(160deg, #0f172a 0%, #1e293b 40%, #162544 100%);
+  }
+
+  .slide-content { max-width: 1200px; width: 100%; text-align: center; position: relative; z-index: 2; }
+
+  /* Decorative elements */
+  .slide::before {
+    content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: radial-gradient(circle at 30% 50%, rgba(59,130,246,0.07) 0%, transparent 50%),
+                radial-gradient(circle at 70% 30%, rgba(139,92,246,0.05) 0%, transparent 50%);
+    z-index: 1; pointer-events: none;
+  }
+
+  h1 { font-size: 2.6em; margin-bottom: 16px; font-weight: 800; letter-spacing: -0.02em; }
+  h2 { font-size: 2em; margin-bottom: 14px; font-weight: 700; letter-spacing: -0.01em; }
+  h3 { font-size: 1.3em; margin-bottom: 10px; font-weight: 600; }
+  p, li { font-size: 1.05em; line-height: 1.7; }
+
+  /* All slides text white */
+  .slide * { color: #fff; }
+
+  .subtitle { font-size: 1.2em; opacity: 0.8; font-weight: 300; }
+  .label { font-size: 0.75em; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.6; font-weight: 600; margin-bottom: 8px; }
+
+  /* Screenshot */
+  .screenshot {
+    border-radius: 12px; max-width: 85%; max-height: 50vh; object-fit: contain;
+    margin-top: 16px; border: 2px solid rgba(255,255,255,0.15);
+    background: #fff; padding: 6px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+
+  /* Cards */
+  .cards { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 20px; }
+  .card-glass {
+    background: rgba(255,255,255,0.08); backdrop-filter: blur(16px);
+    border-radius: 16px; padding: 20px 24px; min-width: 180px; max-width: 260px;
+    border: 1px solid rgba(255,255,255,0.12); text-align: left;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .card-glass:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.2); }
+  .card-solid {
+    background: rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; min-width: 180px; max-width: 260px;
+    border: 1px solid rgba(255,255,255,0.1); text-align: left;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: transform 0.3s;
+  }
+  .card-solid:hover { transform: translateY(-4px); }
+  .card-solid h3 { color: #93c5fd !important; }
+  .card-solid p { color: rgba(255,255,255,0.65) !important; font-size: 0.9em; }
+  .card-icon { font-size: 2em; margin-bottom: 8px; display: block; }
+
+  /* Criterion card - colorful */
+  .criterion-card {
+    border-radius: 20px; padding: 24px; min-width: 240px; max-width: 300px; flex: 1;
+    text-align: left; transition: transform 0.3s; position: relative; overflow: hidden;
+  }
+  .criterion-card::before {
+    content: ''; position: absolute; top: -30px; right: -30px; width: 80px; height: 80px;
+    border-radius: 50%; background: rgba(255,255,255,0.15);
+  }
+  .criterion-card:hover { transform: translateY(-6px) scale(1.02); }
+  .criterion-card .num { font-size: 3em; font-weight: 900; opacity: 0.25; position: absolute; top: 10px; right: 20px; }
+  .criterion-card h3 { font-size: 1.1em; margin-bottom: 6px; color: #fff; }
+  .criterion-card p { font-size: 0.9em; opacity: 0.85; color: #fff; }
+
+  .c1 { background: linear-gradient(135deg, #2563eb, #3b82f6); }
+  .c2 { background: linear-gradient(135deg, #7c3aed, #8b5cf6); }
+  .c3 { background: linear-gradient(135deg, #059669, #10b981); }
+  .c4 { background: linear-gradient(135deg, #d97706, #f59e0b); }
+  .c5 { background: linear-gradient(135deg, #dc2626, #ef4444); }
+  .c6 { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+  .c7 { background: linear-gradient(135deg, #c026d3, #d946ef); }
+
+  /* Steps */
+  .steps { display: flex; flex-direction: column; gap: 14px; margin-top: 16px; text-align: left; }
+  .step {
+    display: flex; align-items: flex-start; gap: 16px;
+    background: rgba(255,255,255,0.08); border-radius: 14px; padding: 16px 20px;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+  .step-num {
+    background: rgba(59,130,246,0.3); color: #93c5fd !important; font-weight: 800; font-size: 1.2em;
+    width: 40px; height: 40px; border-radius: 12px; display: flex;
+    align-items: center; justify-content: center; flex-shrink: 0;
+  }
+
+  /* Region grid */
+  .region-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 16px; }
+  .region-box {
+    background: rgba(255,255,255,0.1); border-radius: 14px; padding: 16px; text-align: center;
+    border: 1px solid rgba(255,255,255,0.15); transition: transform 0.3s;
+  }
+  .region-box:hover { transform: scale(1.03); }
+  .region-box .name { font-weight: 700; font-size: 1em; margin-bottom: 6px; }
+  .region-box .stats { font-size: 0.85em; opacity: 0.8; }
+  .region-box .quota-num { font-size: 1.8em; font-weight: 800; color: #60a5fa; }
+  .region-box .competition { font-size: 0.85em; margin-top: 4px; padding: 3px 10px; border-radius: 8px; display: inline-block; }
+  .comp-high { background: rgba(239,68,68,0.3); color: #fca5a5; }
+  .comp-med { background: rgba(245,158,11,0.3); color: #fcd34d; }
+  .comp-low { background: rgba(16,185,129,0.3); color: #6ee7b7; }
+
+  /* Tables */
+  .data-table {
+    width: 100%; border-collapse: collapse; margin-top: 12px;
+    background: rgba(255,255,255,0.05); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .data-table th {
+    background: rgba(59,130,246,0.3); color: #fff !important; padding: 12px 14px; text-align: left;
+    font-weight: 600; font-size: 0.9em;
+  }
+  .data-table td {
+    padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); font-size: 0.9em; color: #cbd5e1 !important;
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:hover td { background: rgba(255,255,255,0.04); }
+  .data-table tr.rejected td { background: rgba(239,68,68,0.15); text-decoration: line-through; color: #fca5a5 !important; }
+  .data-table tr.replacement td { background: rgba(16,185,129,0.15); color: #6ee7b7 !important; font-weight: 600; }
+
+  /* Buttons */
+  .btn {
+    display: inline-block; padding: 12px 28px; border-radius: 10px;
+    font-size: 0.95em; font-weight: 600; cursor: pointer; border: none;
+    transition: all 0.3s; margin: 4px; font-family: inherit;
+  }
+  .btn-primary { background: #3b82f6; color: #fff; }
+  .btn-primary:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 8px 20px rgba(59,130,246,0.4); }
+  .btn-danger { background: #ef4444; color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-success { background: #10b981; color: #fff; }
+  .btn-success:hover { background: #059669; }
+  .btn-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.3); }
+  .btn-outline:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.6); }
+  .btn-gold { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+  .btn-gold:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(245,158,11,0.4); }
+
+  /* Badges */
+  .badge {
+    display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 0.78em; font-weight: 600;
+  }
+  .badge-green { background: rgba(16,185,129,0.25); color: #6ee7b7 !important; }
+  .badge-red { background: rgba(239,68,68,0.25); color: #fca5a5 !important; }
+  .badge-blue { background: rgba(59,130,246,0.25); color: #93c5fd !important; }
+  .badge-yellow { background: rgba(245,158,11,0.25); color: #fcd34d !important; }
+
+  /* Demo panel */
+  .demo-panel {
+    background: rgba(255,255,255,0.06); border-radius: 20px; padding: 28px;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.3); width: 100%; max-width: 950px;
+    text-align: left; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .demo-panel h3 { color: #e2e8f0 !important; margin-bottom: 12px; }
+
+  /* Certificate mock */
+  .cert-mock {
+    background: linear-gradient(135deg, #fffbeb, #fef3c7); border: 3px solid #d97706;
+    border-radius: 16px; padding: 32px; max-width: 500px; margin: 0 auto; text-align: center;
+    position: relative; box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+  }
+  .cert-mock::before {
+    content: ''; position: absolute; inset: 6px; border: 2px solid #b45309; border-radius: 12px;
+    pointer-events: none;
+  }
+  .cert-mock .cert-title { font-size: 1.4em; font-weight: 800; color: #92400e !important; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .cert-mock .cert-name { font-size: 1.2em; font-weight: 700; color: #78350f !important; margin: 12px 0; border-bottom: 2px solid #d97706; display: inline-block; padding-bottom: 4px; }
+  .cert-mock .cert-text { font-size: 0.9em; color: #92400e !important; margin: 8px 0; }
+  .cert-mock .qr-placeholder {
+    width: 80px; height: 80px; background: #1e293b; border-radius: 8px;
+    margin: 12px auto 0; display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 0.7em;
+  }
+
+  /* Navigation */
+  .nav {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 10px; z-index: 100; align-items: center;
+    background: rgba(15,23,42,0.85); backdrop-filter: blur(16px);
+    padding: 8px 20px; border-radius: 50px; border: 1px solid rgba(255,255,255,0.1);
+  }
+  .nav button {
+    background: rgba(255,255,255,0.1); border: none; color: #fff;
+    width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
+    font-size: 1.1em; transition: all 0.3s; display: flex;
+    align-items: center; justify-content: center;
+  }
+  .nav button:hover { background: rgba(255,255,255,0.25); }
+  .nav button:disabled { opacity: 0.2; cursor: default; }
+  .nav .counter { color: rgba(255,255,255,0.7); font-size: 0.85em; padding: 0 10px; min-width: 55px; text-align: center; }
+
+  .progress-bar {
+    position: fixed; top: 0; left: 0; height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6, #ec4899);
+    transition: width 0.5s ease; z-index: 100;
+  }
+
+  /* Flow */
+  .flow { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; margin-top: 20px; }
+  .flow-item {
+    background: rgba(255,255,255,0.12); border-radius: 10px; padding: 12px 16px;
+    font-weight: 600; font-size: 0.9em; border: 1px solid rgba(255,255,255,0.15);
+  }
+  .flow-arrow { font-size: 1.3em; opacity: 0.5; }
+
+  /* Feature list */
+  ul.flist { list-style: none; text-align: left; max-width: 650px; margin: 0 auto; }
+  ul.flist li { padding: 10px 0 10px 32px; position: relative; font-size: 1em; }
+  ul.flist li::before { content: ''; position: absolute; left: 0; top: 14px; width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+
+  /* Separate criterion slide */
+  .criterion-hero { display: flex; align-items: center; gap: 30px; text-align: left; }
+  .criterion-hero .icon-big { font-size: 4em; flex-shrink: 0; }
+  .criterion-hero h2 { font-size: 1.8em; margin-bottom: 8px; }
+  .criterion-hero p { font-size: 1em; opacity: 0.85; }
+  .criterion-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+  .ctag { background: rgba(255,255,255,0.15); padding: 6px 14px; border-radius: 8px; font-size: 0.85em; border: 1px solid rgba(255,255,255,0.2); }
+
+  /* Pill nav for criteria */
+  .criteria-nav { display: flex; gap: 4px; justify-content: center; margin-bottom: 20px; }
+  .criteria-pill { width: 40px; height: 6px; border-radius: 3px; background: rgba(255,255,255,0.2); }
+  .criteria-pill.active { background: #fff; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- SLIDE 0: Title -->
+<div class="slide bg-hero active" id="slide-0">
+  <div class="slide-content">
+    <p class="label">Министерство просвещения Кыргызской Республики</p>
+    <h1 style="font-size:2.2em; line-height:1.3;">Автоматизированная информационная система<br>награждения педагогов и работников<br>сферы образования</h1>
+    <p class="subtitle" style="margin-top:16px;">Почётная грамота &bull; Нагрудный знак &laquo;Билим берүүнүн мыктысы&raquo;</p>
+    <div style="margin-top:40px; display:flex; gap:16px; justify-content:center;">
+      <span class="btn btn-primary" onclick="nextSlide()">Начать просмотр &rarr;</span>
+    </div>
+    <p style="margin-top:40px; opacity:0.3; font-size:0.85em;">2026</p>
+  </div>
+</div>
+
+<!-- SLIDE 1: General process -->
+<div class="slide bg-dark" id="slide-1">
+  <div class="slide-content">
+    <p class="label">Обзор</p>
+    <h2>Общий процесс награждения</h2>
+    <div class="flow" style="margin:24px 0;">
+      <div class="flow-item" style="background:rgba(59,130,246,0.4);">Создание заявки</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(139,92,246,0.4);">7 критериев</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(14,165,233,0.4);">Формирование списка</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(16,185,129,0.4);">Комиссия</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(234,179,8,0.4);">Утверждение списка</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(245,158,11,0.4);">Формирование приказа</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(236,72,153,0.4);">Грамота + QR</div>
+    </div>
+    <div class="cards" style="margin-top:24px;">
+      <div class="card-glass">
+        <span class="card-icon">&#128196;</span>
+        <h3>Почётная грамота</h3>
+        <p style="opacity:0.7; font-size:0.9em;">За значительный вклад в развитие образования</p>
+      </div>
+      <div class="card-glass">
+        <span class="card-icon">&#127941;</span>
+        <h3>Нагрудный знак</h3>
+        <p style="opacity:0.7; font-size:0.9em;">&laquo;Билим берүүнүн мыктысы&raquo;</p>
+      </div>
+      <div class="card-glass">
+        <span class="card-icon">&#9878;</span>
+        <h3>Прозрачный отбор</h3>
+        <p style="opacity:0.7; font-size:0.9em;">Ранжирование по баллам, стажу и квотам</p>
+      </div>
+      <div class="card-glass">
+        <span class="card-icon">&#128274;</span>
+        <h3>QR-верификация</h3>
+        <p style="opacity:0.7; font-size:0.9em;">Каждая грамота с уникальным QR-кодом</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 2: Applications list with HTML mockup -->
+<div class="slide bg-dark" id="slide-2">
+  <div class="slide-content">
+    <p class="label">Шаг 1</p>
+    <h2>Список заявок на награды</h2>
+    <p style="margin-bottom:16px; opacity:0.7;">Главный экран &mdash; перечень всех созданных и утверждённых заявок. Служит архивом: кто, когда, какую награду и сколько выдавали.</p>
+    <div class="demo-panel" style="max-width:1100px;">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        Список заявок на награды
+        <span class="btn btn-primary" style="padding:8px 20px;font-size:0.85em;">Создать заявку</span>
+      </h3>
+      <table class="data-table">
+        <thead><tr>
+          <th style="width:36px;">&#8470;</th><th>Год</th><th>Памятная дата</th><th>Тип награды</th><th style="width:70px;">Квота</th><th>Ответственный</th><th>Утверждено</th><th style="width:50px;"></th>
+        </tr></thead>
+        <tbody>
+          <tr><td>1</td><td>2026</td><td>25 мая &mdash; ко Дню последнего звонка</td><td>Почётная грамота<br><span style="font-size:0.75em;opacity:0.5;">Создана: 15.04.2026</span></td><td>35</td><td>Асанов А.К.</td><td style="color:#6ee7b7 !important;">&#10003;</td><td>&#128065;</td></tr>
+          <tr><td>2</td><td>2026</td><td>25 мая &mdash; ко Дню последнего звонка</td><td>Почётная грамота<br><span style="font-size:0.75em;opacity:0.5;">Создана: 17.04.2026</span></td><td>100</td><td>Бекова Н.Т.</td><td style="color:#6ee7b7 !important;">&#10003;</td><td>&#128065;</td></tr>
+          <tr><td>3</td><td>2026</td><td>5 октября &mdash; ко Дню работников образования</td><td>Почётная грамота<br><span style="font-size:0.75em;opacity:0.5;">Создана: 18.04.2026</span></td><td>500</td><td>Бекова Н.Т.</td><td style="color:#6ee7b7 !important;">&#10003;</td><td>&#128065;</td></tr>
+          <tr><td>4</td><td>2026</td><td>5 октября &mdash; ко Дню работников образования</td><td>Нагрудный знак<br><span style="font-size:0.75em;opacity:0.5;">Создана: 19.04.2026</span></td><td>1000</td><td>Бекова Н.Т.</td><td style="color:#fcd34d !important;">&#9711;</td><td>&#128065;</td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:12px; font-size:0.8em; opacity:0.4;">Полная история всех награждений: когда создана, кем, тип, квота, статус утверждения</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 3: Create application -->
+<div class="slide bg-blue" id="slide-3">
+  <div class="slide-content">
+    <p class="label">Шаг 2</p>
+    <h2>Создание новой заявки</h2>
+    <p style="margin-bottom:16px; opacity:0.85;">Заполняем основные параметры награждения</p>
+    <img src="nagrady_images/image3.png" class="screenshot" alt="Основные параметры">
+    <div class="cards" style="margin-top:20px;">
+      <div class="card-glass"><span class="card-icon">&#128197;</span><h3>Учебный год</h3></div>
+      <div class="card-glass"><span class="card-icon">&#127880;</span><h3>Памятная дата</h3></div>
+      <div class="card-glass"><span class="card-icon">&#127942;</span><h3>Тип награды</h3></div>
+      <div class="card-glass"><span class="card-icon">&#128290;</span><h3>Квота</h3></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 4: 7 criteria overview -->
+<div class="slide bg-dark" id="slide-4">
+  <div class="slide-content">
+    <p class="label">Шаг 3</p>
+    <h2>7 критериев отбора кандидатов</h2>
+    <p style="opacity:0.6; margin-bottom:20px;">Последовательная настройка каждого блока фильтрации</p>
+    <div class="cards" style="gap:14px;">
+      <div class="criterion-card c1"><div class="num">1</div><h3>Основные параметры</h3><p>Год, дата, тип, квота</p></div>
+      <div class="criterion-card c2"><div class="num">2</div><h3>Типы организаций</h3><p>Дошкольные, общеобразовательные, НПО, внешкольные</p></div>
+      <div class="criterion-card c3"><div class="num">3</div><h3>Формы собственности</h3><p>7 форм: государственная, частная, муниципальная и др.</p></div>
+      <div class="criterion-card c4"><div class="num">4</div><h3>Размеры организаций</h3><p>Мало-, средне-, полнокомплектные</p></div>
+      <div class="criterion-card c5"><div class="num">5</div><h3>Профили организаций</h3><p>Специализированные школы, лицеи, профильные</p></div>
+      <div class="criterion-card c6"><div class="num">6</div><h3>Специальности</h3><p>Учителя, директора, методисты, воспитатели</p></div>
+      <div class="criterion-card c7"><div class="num">7</div><h3>Регионы</h3><p>9 регионов: 7 областей + г.Бишкек + г.Ош</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 5: Criterion 1 - Основные параметры -->
+<div class="slide bg-blue" id="slide-5">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill active"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#9881;</div>
+      <div>
+        <p class="label">Критерий 1 из 7</p>
+        <h2>Основные параметры</h2>
+        <p>Задаём базовые параметры заявки: учебный год, памятную дату, тип награды и общую квоту на количество наград</p>
+        <div class="criterion-tags">
+          <span class="ctag">Учебный год: 2026</span>
+          <span class="ctag">5 октября &mdash; День работников образования</span>
+          <span class="ctag">Нагрудный знак</span>
+          <span class="ctag">Квота: 1000</span>
+        </div>
+      </div>
+    </div>
+    <img src="nagrady_images/image3.png" class="screenshot" style="max-height:40vh; margin-top:20px;" alt="Параметры">
+  </div>
+</div>
+
+<!-- SLIDE 6: Criterion 2 - Типы организаций -->
+<div class="slide bg-purple" id="slide-6">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill active"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#127979;</div>
+      <div>
+        <p class="label">Критерий 2 из 7</p>
+        <h2>Типы организаций</h2>
+        <p>Выбираем из каких типов образовательных организаций отбираются кандидаты</p>
+        <div class="criterion-tags">
+          <span class="ctag">&#127968; Дошкольные образовательные организации</span>
+          <span class="ctag">&#127979; Общеобразовательные организации</span>
+          <span class="ctag">&#127981; Организации начального профессионального образования</span>
+          <span class="ctag">&#127915; Внешкольные образовательные организации</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 7: Criterion 3 - Формы собственности -->
+<div class="slide bg-green" id="slide-7">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill active"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#127970;</div>
+      <div>
+        <p class="label">Критерий 3 из 7</p>
+        <h2>Формы собственности</h2>
+        <p>Фильтрация по форме собственности организации</p>
+        <div class="criterion-tags">
+          <span class="ctag">Государственная</span>
+          <span class="ctag">Частная</span>
+          <span class="ctag">Муниципальная</span>
+          <span class="ctag">Государственно-муниципальная</span>
+          <span class="ctag">Смешанная</span>
+          <span class="ctag">Ведомственная</span>
+          <span class="ctag">Иная</span>
+        </div>
+      </div>
+    </div>
+    <img src="nagrady_images/image4.png" class="screenshot" style="max-height:35vh; margin-top:16px;" alt="Формы собственности">
+  </div>
+</div>
+
+<!-- SLIDE 8: Criterion 4 - Размеры -->
+<div class="slide bg-amber" id="slide-8">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill active"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#128207;</div>
+      <div>
+        <p class="label">Критерий 4 из 7</p>
+        <h2>Размеры организаций</h2>
+        <p>Классификация по количеству учащихся / воспитанников</p>
+        <div class="criterion-tags">
+          <span class="ctag">Малокомплектные (до 10-50)</span>
+          <span class="ctag">Среднекомплектные (11-100)</span>
+          <span class="ctag">Полнокомплектные (от 21-101+)</span>
+        </div>
+        <p style="margin-top:12px; opacity:0.8; font-size:0.9em;">Размеры определяются отдельно для каждого типа: дошкольные, общеобразовательные, НПО, внешкольные</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 9: Criterion 5 - Профили -->
+<div class="slide bg-red" id="slide-9">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill active"></div><div class="criteria-pill"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#127891;</div>
+      <div>
+        <p class="label">Критерий 5 из 7</p>
+        <h2>Профили организаций</h2>
+        <p>Включение специализированных и профильных учреждений</p>
+        <div class="criterion-tags">
+          <span class="ctag">Для детей с нарушением зрения</span>
+          <span class="ctag">Для детей с нарушением слуха</span>
+          <span class="ctag">Санаторные дошкольные</span>
+          <span class="ctag">Инновационные организации</span>
+          <span class="ctag">Профессиональные лицеи</span>
+          <span class="ctag">Республиканские внешкольные</span>
+        </div>
+      </div>
+    </div>
+    <img src="nagrady_images/image5.png" class="screenshot" style="max-height:32vh; margin-top:12px;" alt="Профили">
+  </div>
+</div>
+
+<!-- SLIDE 10: Criterion 6 - Специальности -->
+<div class="slide bg-teal" id="slide-10">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill active"></div><div class="criteria-pill"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#128104;&#8205;&#127979;</div>
+      <div>
+        <p class="label">Критерий 6 из 7</p>
+        <h2>Специальности</h2>
+        <p>Выбор должностей и специализаций педагогических работников</p>
+        <div class="criterion-tags">
+          <span class="ctag">Учителя начальных классов</span>
+          <span class="ctag">Учителя-предметники</span>
+          <span class="ctag">Директора</span>
+          <span class="ctag">Заместители</span>
+          <span class="ctag">Методисты</span>
+          <span class="ctag">Воспитатели</span>
+          <span class="ctag">Библиотекари</span>
+          <span class="ctag">Концертмейстеры</span>
+        </div>
+      </div>
+    </div>
+    <img src="nagrady_images/image6.png" class="screenshot" style="max-height:32vh; margin-top:12px;" alt="Специальности">
+  </div>
+</div>
+
+<!-- SLIDE 11: Criterion 7 - Регионы -->
+<div class="slide bg-rose" id="slide-11">
+  <div class="slide-content">
+    <div class="criteria-nav"><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill"></div><div class="criteria-pill active"></div></div>
+    <div class="criterion-hero">
+      <div class="icon-big">&#127758;</div>
+      <div>
+        <p class="label">Критерий 7 из 7</p>
+        <h2>Регионы</h2>
+        <p>Выбор регионов для формирования квот. Квоты распределяются пропорционально количеству педагогов</p>
+        <div class="criterion-tags">
+          <span class="ctag">Ыссык-Кульская</span>
+          <span class="ctag">Жалал-Абадская</span>
+          <span class="ctag">Нарынская</span>
+          <span class="ctag">Баткенская</span>
+          <span class="ctag">Ошская</span>
+          <span class="ctag">Таласская</span>
+          <span class="ctag">Чуйская</span>
+          <span class="ctag">г.Бишкек</span>
+          <span class="ctag">г.Ош</span>
+        </div>
+      </div>
+    </div>
+    <img src="nagrady_images/image7.png" class="screenshot" style="max-height:30vh; margin-top:12px;" alt="Регионы">
+  </div>
+</div>
+
+<!-- SLIDE 12: Regions with competition -->
+<div class="slide bg-dark" id="slide-12">
+  <div class="slide-content">
+    <p class="label">Конкуренция</p>
+    <h2>Квоты регионов: кандидатов на 1 место</h2>
+    <p style="opacity:0.6; margin-bottom:8px;">Чем больше кандидатов на 1 место &mdash; тем выше конкуренция</p>
+    <div class="region-grid">
+      <div class="region-box">
+        <div class="name">Ыссык-Кульская</div>
+        <div class="quota-num">40</div>
+        <div class="stats">5 534 кандидата</div>
+        <div class="competition comp-high">138 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Баткенская</div>
+        <div class="quota-num">51</div>
+        <div class="stats">7 195 кандидатов</div>
+        <div class="competition comp-high">141 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Ошская</div>
+        <div class="quota-num">104</div>
+        <div class="stats">13 499 кандидатов</div>
+        <div class="competition comp-high">130 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Таласская</div>
+        <div class="quota-num">24</div>
+        <div class="stats">2 942 кандидата</div>
+        <div class="competition comp-med">123 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">г.Ош</div>
+        <div class="quota-num">28</div>
+        <div class="stats">3 114 кандидатов</div>
+        <div class="competition comp-med">111 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Нарынская</div>
+        <div class="quota-num">35</div>
+        <div class="stats">5 083 кандидата</div>
+        <div class="competition comp-high">145 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Чуйская</div>
+        <div class="quota-num">61</div>
+        <div class="stats">7 948 кандидатов</div>
+        <div class="competition comp-high">130 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">г.Бишкек</div>
+        <div class="quota-num">59</div>
+        <div class="stats">5 688 кандидатов</div>
+        <div class="competition comp-low">96 чел. на 1 место</div>
+      </div>
+      <div class="region-box">
+        <div class="name">Жалал-Абадская</div>
+        <div class="quota-num">98</div>
+        <div class="stats">13 114 кандидатов</div>
+        <div class="competition comp-high">134 чел. на 1 место</div>
+      </div>
+    </div>
+    <p style="margin-top:16px; font-size:1.1em; opacity:0.7;">Итого: <strong style="color:#60a5fa;">1 000</strong> наград &bull; <strong style="color:#60a5fa;">64 117</strong> кандидатов &bull; в среднем <strong style="color:#f87171;">128</strong> чел. на 1 место</p>
+  </div>
+</div>
+
+<!-- SLIDE 13: Award types and requirements -->
+<div class="slide bg-dark" id="slide-13">
+  <div class="slide-content">
+    <p class="label">Требования к награждению</p>
+    <h2>Типы наград и общие критерии допуска</h2>
+    <p style="margin-bottom:20px; opacity:0.6;">Каждый тип награды имеет свои минимальные требования по стажу и предыдущим наградам</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; max-width:1100px; margin:0 auto;">
+      <!-- Почётная грамота -->
+      <div style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.25); border-radius:16px; padding:20px; text-align:left;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <span style="font-size:1.8em;">&#128196;</span>
+          <h3 style="margin:0; font-size:1.15em;">Почётная грамота</h3>
+        </div>
+        <ul style="list-style:none; font-size:0.88em;">
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#60a5fa;">&#10003;</span> Педагогический стаж <strong>не менее 5 лет</strong></li>
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#60a5fa;">&#10003;</span> Ранее <strong>не награждён</strong> Почётной грамотой</li>
+        </ul>
+      </div>
+      <!-- Отличник образования -->
+      <div style="background:rgba(139,92,246,0.12); border:1px solid rgba(139,92,246,0.25); border-radius:16px; padding:20px; text-align:left;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <span style="font-size:1.8em;">&#127941;</span>
+          <h3 style="margin:0; font-size:1.15em;">Нагрудный знак &laquo;Отличник образования&raquo;</h3>
+        </div>
+        <ul style="list-style:none; font-size:0.88em;">
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#a78bfa;">&#10003;</span> Педагогический стаж <strong>не менее 10 лет</strong></li>
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#a78bfa;">&#10003;</span> Ранее <strong>награждён</strong> Почётной грамотой</li>
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#a78bfa;">&#10003;</span> С момента грамоты прошло <strong>не менее 3 лет</strong></li>
+        </ul>
+      </div>
+      <!-- Лучший работник -->
+      <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.25); border-radius:16px; padding:20px; text-align:left;">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+          <span style="font-size:1.8em;">&#11088;</span>
+          <h3 style="margin:0; font-size:1.15em;">Нагрудный знак &laquo;Лучший работник&raquo;</h3>
+        </div>
+        <ul style="list-style:none; font-size:0.88em;">
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#6ee7b7;">&#10003;</span> Работник образовательной организации</li>
+          <li style="padding:6px 0; padding-left:20px; position:relative;"><span style="position:absolute;left:0;color:#6ee7b7;">&#10003;</span> Стаж работы <strong>не менее 5 лет</strong></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14: Scoring system - general education -->
+<div class="slide bg-dark" id="slide-14">
+  <div class="slide-content">
+    <p class="label">Система рейтинга</p>
+    <h2>Критерии и баллы: общее образование</h2>
+    <p style="margin-bottom:14px; opacity:0.6;">Для педагогов общеобразовательных организаций. Баллы от 1 до 5 за каждый критерий.</p>
+    <div class="demo-panel" style="max-width:1050px;">
+      <table class="data-table" style="font-size:0.88em;">
+        <thead><tr><th style="width:36px;">&#8470;</th><th>Критерий</th><th style="width:200px;">Баллы</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td style="text-align:left !important;">Повышение квалификации (&ge;72 часа за 5 лет), сертификат РИПКППР / гос. вуза</td><td><strong style="color:#60a5fa !important;">5</strong> за 1-й серт., <strong style="color:#60a5fa !important;">1</strong> за каждый след.</td></tr>
+          <tr><td>2</td><td style="text-align:left !important;">Победитель областной предметной олимпиады (учащийся)</td><td>1 место &mdash; <strong style="color:#60a5fa !important;">3</strong>, 2 место &mdash; <strong style="color:#60a5fa !important;">2</strong>, 3 место &mdash; <strong style="color:#60a5fa !important;">1</strong></td></tr>
+          <tr><td></td><td style="text-align:left !important;">Победитель республиканской предметной олимпиады</td><td>1 место &mdash; <strong style="color:#60a5fa !important;">5</strong>, 2 место &mdash; <strong style="color:#60a5fa !important;">4</strong>, 3 место &mdash; <strong style="color:#60a5fa !important;">3</strong></td></tr>
+          <tr><td>3</td><td style="text-align:left !important;">Победитель конкурса &laquo;Учитель года&raquo;</td><td>Обл: <strong style="color:#60a5fa !important;">3/2/1</strong> &bull; Респ: <strong style="color:#60a5fa !important;">5/4/3</strong></td></tr>
+          <tr><td>4</td><td style="text-align:left !important;">Авторская программа (утв. приказом Министерства)</td><td><strong style="color:#60a5fa !important;">3</strong> балла</td></tr>
+          <tr><td>5</td><td style="text-align:left !important;">Разработка методических программ / предметного стандарта / учебной программы / методического пособия</td><td>по <strong style="color:#60a5fa !important;">3</strong> балла за каждый</td></tr>
+          <tr><td>6</td><td style="text-align:left !important;">Эксперт &laquo;Окуу китеби&raquo;</td><td><strong style="color:#60a5fa !important;">3</strong> балла</td></tr>
+          <tr><td>7</td><td style="text-align:left !important;">Учёная степень</td><td>Магистр &mdash; <strong style="color:#60a5fa !important;">3</strong>, канд. наук &mdash; <strong style="color:#60a5fa !important;">4</strong>, доктор &mdash; <strong style="color:#60a5fa !important;">5</strong></td></tr>
+          <tr><td>8</td><td style="text-align:left !important;">Руководитель методического объединения</td><td><strong style="color:#60a5fa !important;">3</strong> балла</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top:12px; font-size:0.85em; opacity:0.4;">Аналогичные критерии применяются для педагогов 1&ndash;4 классов и специализированных образовательных организаций</p>
+  </div>
+</div>
+
+<!-- SLIDE 15: Scoring - preschool, NPO, extracurricular -->
+<div class="slide bg-dark" id="slide-15">
+  <div class="slide-content">
+    <p class="label">Система рейтинга</p>
+    <h2>Критерии и баллы: дошкольное, НПО, внешкольное</h2>
+    <p style="margin-bottom:14px; opacity:0.6;">Для каждого типа организации &mdash; свои критерии с учётом специфики</p>
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; max-width:1100px; margin:0 auto;">
+      <!-- Дошкольное -->
+      <div style="background:rgba(236,72,153,0.08); border:1px solid rgba(236,72,153,0.2); border-radius:14px; padding:16px; text-align:left;">
+        <h3 style="font-size:1em; margin-bottom:10px; color:#f9a8d4 !important;">&#127968; Дошкольное образование</h3>
+        <ul style="list-style:none; font-size:0.8em; line-height:1.8;">
+          <li><span style="color:#60a5fa;">&#9679;</span> Повышение квалификации &ge;72ч &mdash; <strong>5</strong> / <strong>1</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> &laquo;Лучший воспитатель&raquo; &mdash; обл. <strong>3/2/1</strong>, респ. <strong>5/4/3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> &laquo;Лучший методист&raquo; &mdash; обл. <strong>3/2/1</strong>, респ. <strong>5/4/3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Авторская программа &mdash; <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Методические разработки &mdash; по <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Учёная степень &mdash; <strong>3/4/5</strong></li>
+        </ul>
+      </div>
+      <!-- НПО -->
+      <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.2); border-radius:14px; padding:16px; text-align:left;">
+        <h3 style="font-size:1em; margin-bottom:10px; color:#fcd34d !important;">&#127981; Начальное проф. образование</h3>
+        <ul style="list-style:none; font-size:0.8em; line-height:1.8;">
+          <li><span style="color:#60a5fa;">&#9679;</span> Повышение квалификации &ge;72ч &mdash; <strong>5</strong> / <strong>1</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Авторская разработка (РНМЦ) &mdash; <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Методическое пособие &mdash; <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Учебное пособие &mdash; <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Предметный стандарт &mdash; <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> WorldSkills &mdash; обл. <strong>3/2/1</strong>, респ. <strong>5/4/3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Учёная степень &mdash; <strong>3/4/5</strong></li>
+        </ul>
+      </div>
+      <!-- Внешкольное -->
+      <div style="background:rgba(14,165,233,0.08); border:1px solid rgba(14,165,233,0.2); border-radius:14px; padding:16px; text-align:left;">
+        <h3 style="font-size:1em; margin-bottom:10px; color:#7dd3fc !important;">&#127915; Внешкольное и доп. образование</h3>
+        <ul style="list-style:none; font-size:0.8em; line-height:1.8;">
+          <li><span style="color:#60a5fa;">&#9679;</span> Повышение квалификации &ge;72ч &mdash; <strong>5</strong> / <strong>1</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Разработка учебной / авторской программы &mdash; по <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> &laquo;Лучший педагог доп. образования&raquo; &mdash; обл. <strong>3/2/1</strong>, респ. <strong>5/4/3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Методические советы &mdash; обл. <strong>3</strong>, респ. <strong>3</strong></li>
+          <li><span style="color:#60a5fa;">&#9679;</span> Учёная степень &mdash; <strong>3/4/5</strong></li>
+        </ul>
+      </div>
+    </div>
+    <!-- Ranking note -->
+    <div style="margin-top:16px; max-width:700px; margin-left:auto; margin-right:auto;">
+      <div style="background:rgba(59,130,246,0.1); border:1px solid rgba(59,130,246,0.2); border-radius:12px; padding:16px 20px; text-align:left;">
+        <h3 style="font-size:0.95em; margin-bottom:6px;">&#128200; Формирование рейтинга</h3>
+        <p style="font-size:0.85em; opacity:0.7;">Отбор осуществляется АИС на основе рейтинга по <strong>суммарному количеству баллов</strong>. Отдельные категории: малокомплектные школы (&lt;100 учащихся) и спец. организации (школы-интернаты).</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16: How rating is calculated -->
+<div class="slide bg-dark" id="slide-16">
+  <div class="slide-content">
+    <p class="label">Как формируется рейтинг</p>
+    <h2>Пример расчёта баллов кандидата</h2>
+    <p style="margin-bottom:16px; opacity:0.6;">Система автоматически суммирует баллы из всех источников данных</p>
+    <div class="demo-panel" style="max-width:750px;">
+      <h3 style="margin-bottom:14px;">Жумабаев Алмаз Бакирович &mdash; учитель физики, стаж 9 лет</h3>
+      <table class="data-table" style="font-size:0.88em;">
+        <thead><tr><th>Критерий</th><th style="width:100px;text-align:center;">Баллы</th></tr></thead>
+        <tbody>
+          <tr><td>Повышение квалификации (2 сертификата: 1-й = 5, 2-й = 1)</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">6</td></tr>
+          <tr><td>Победитель областной олимпиады (учащийся), 2 место</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">2</td></tr>
+          <tr><td>Конкурс &laquo;Учитель года&raquo; &mdash; областной, 1 место</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">3</td></tr>
+          <tr><td>Методическое пособие</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">3</td></tr>
+          <tr><td>Магистр</td><td style="text-align:center;color:#60a5fa !important;font-weight:700;">3</td></tr>
+          <tr style="background:rgba(59,130,246,0.15) !important;"><td><strong>ИТОГО</strong></td><td style="text-align:center;color:#60a5fa !important;font-weight:900;font-size:1.2em;">17</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards" style="margin-top:20px;">
+      <div class="card-glass" style="max-width:220px;">
+        <span class="card-icon">&#128202;</span>
+        <h3 style="font-size:1em;">Ранг по республике</h3>
+        <p style="opacity:0.6; font-size:0.85em;">Место среди всех кандидатов страны по сумме баллов</p>
+      </div>
+      <div class="card-glass" style="max-width:220px;">
+        <span class="card-icon">&#128205;</span>
+        <h3 style="font-size:1em;">Ранг в регионе</h3>
+        <p style="opacity:0.6; font-size:0.85em;">Место внутри своего региона &mdash; определяет попадание в квоту</p>
+      </div>
+      <div class="card-glass" style="max-width:220px;">
+        <span class="card-icon">&#128736;</span>
+        <h3 style="font-size:1em;">Отдельные категории</h3>
+        <p style="opacity:0.6; font-size:0.85em;">Малокомплектные школы и школы-интернаты ранжируются отдельно</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 17: Candidate list - HTML mockup -->
+<div class="slide bg-dark" id="slide-13">
+  <div class="slide-content">
+    <p class="label">Шаг 4</p>
+    <h2>Сформированный список кандидатов</h2>
+    <p style="margin-bottom:12px; opacity:0.7;">После нажатия &laquo;Сформировать список кандидатов&raquo; &mdash; система выдаёт ранжированный список по регионам</p>
+    <div class="demo-panel" style="max-width:1100px;">
+      <!-- Region summary bar -->
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+        <span style="background:rgba(59,130,246,0.2); padding:6px 12px; border-radius:8px; font-size:0.8em; border:1px solid rgba(59,130,246,0.3);">Ыссык-Кульская <strong>40</strong> квота</span>
+        <span style="background:rgba(139,92,246,0.2); padding:6px 12px; border-radius:8px; font-size:0.8em; border:1px solid rgba(139,92,246,0.3);">Баткенская <strong>51</strong></span>
+        <span style="background:rgba(16,185,129,0.2); padding:6px 12px; border-radius:8px; font-size:0.8em; border:1px solid rgba(16,185,129,0.3);">Ошская <strong>104</strong></span>
+        <span style="background:rgba(245,158,11,0.2); padding:6px 12px; border-radius:8px; font-size:0.8em; border:1px solid rgba(245,158,11,0.3);">Чуйская <strong>61</strong></span>
+        <span style="background:rgba(236,72,153,0.2); padding:6px 12px; border-radius:8px; font-size:0.8em; border:1px solid rgba(236,72,153,0.3);">г.Бишкек <strong>59</strong></span>
+        <span style="opacity:0.4; padding:6px 8px; font-size:0.8em;">+ ещё 4 региона</span>
+      </div>
+      <table class="data-table">
+        <thead><tr>
+          <th style="width:36px;">&#8470;</th><th>ФИО</th><th>Регион</th><th>Стаж</th><th>Баллы</th><th>Ранг по<br>республике</th><th>Ранг в<br>регионе</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Жумабаев Алмаз Бакирович</strong><br><span style="font-size:0.75em;opacity:0.4;">1983-04-17 &bull; +996 555 123456</span></td><td>Ыссык-Кульская</td><td>9 лет 0 мес</td><td style="color:#60a5fa !important;font-weight:700;">16</td><td>8</td><td>2</td></tr>
+          <tr><td>2</td><td><strong>Токтогулова Айгуль Маратовна</strong><br><span style="font-size:0.75em;opacity:0.4;">1974-02-05 &bull; +996 704 234567</span></td><td>Ыссык-Кульская</td><td>13 лет 4 мес</td><td style="color:#60a5fa !important;font-weight:700;">16</td><td>7</td><td>1</td></tr>
+          <tr><td>3</td><td><strong>Сыдыкова Гульмира Абдыкадыровна</strong><br><span style="font-size:0.75em;opacity:0.4;">1966-12-16 &bull; +996 709 345678</span></td><td>Ыссык-Кульская</td><td>33 года 6 мес</td><td style="color:#60a5fa !important;font-weight:700;">13</td><td>14</td><td>4</td></tr>
+          <tr><td>4</td><td><strong>Орозбекова Назира Жумабаевна</strong><br><span style="font-size:0.75em;opacity:0.4;">1967-06-15 &bull; +996 555 456789</span></td><td>Ыссык-Кульская</td><td>37 лет 0 мес</td><td style="color:#60a5fa !important;font-weight:700;">13</td><td>12</td><td>3</td></tr>
+          <tr><td>5</td><td><strong>Эсенбаева Бурул Кенешовна</strong><br><span style="font-size:0.75em;opacity:0.4;">1982-12-11 &bull; +996 705 567890</span></td><td>Ыссык-Кульская</td><td>21 год 1 мес</td><td style="color:#60a5fa !important;font-weight:700;">11</td><td>24</td><td>5</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards" style="margin-top:16px;">
+      <div class="card-solid"><span class="card-icon">&#127941;</span><h3>Баллы</h3><p>Рассчитываются автоматически</p></div>
+      <div class="card-solid"><span class="card-icon">&#128200;</span><h3>Ранг по республике</h3><p>Общий рейтинг</p></div>
+      <div class="card-solid"><span class="card-icon">&#128205;</span><h3>Ранг в регионе</h3><p>Позиция внутри региона</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 14: Commission - what they see -->
+<div class="slide bg-dark" id="slide-14">
+  <div class="slide-content">
+    <p class="label">Шаг 5</p>
+    <h2>Комиссия: рассмотрение кандидатов</h2>
+    <p style="margin-bottom:12px; opacity:0.7;">Комиссия видит только текущий утверждённый список по квоте региона. Может утвердить или отклонить каждого кандидата.</p>
+    <!-- Important callout -->
+    <div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.3); border-radius:14px; padding:16px 24px; margin-bottom:20px; text-align:left; display:flex; gap:14px; align-items:center; max-width:850px; margin-left:auto; margin-right:auto;">
+      <div style="font-size:2.2em; flex-shrink:0;">&#128683;</div>
+      <div>
+        <strong style="font-size:1.05em;">Комиссия НЕ видит, кто следующий по списку</strong>
+        <p style="opacity:0.75; font-size:0.9em; margin-top:4px;">Это ключевой принцип: члены комиссии не имеют доступа к резервному списку. Они не знают, кто займёт место отклонённого кандидата. Это исключает предвзятость и обеспечивает объективность решений.</p>
+      </div>
+    </div>
+    <div class="demo-panel" style="max-width:900px;">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;">
+        Ыссык-Кульская область &mdash; квота: 40
+        <span style="font-size:0.8em;opacity:0.5;">Рассмотрено: 5 / 40</span>
+      </h3>
+      <table class="data-table">
+        <thead><tr>
+          <th style="width:36px;">&#8470;</th><th>ФИО</th><th>Стаж</th><th>Баллы</th><th>Статус</th><th>Действие</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>1</td><td><strong>Жумабаев А.Б.</strong></td><td>9 лет</td><td>16</td><td><span class="badge badge-yellow">Рассмотрение</span></td><td><span class="btn btn-success" style="padding:3px 10px;font-size:0.75em;">&#10003;</span> <span class="btn btn-danger" style="padding:3px 10px;font-size:0.75em;">&#10007;</span></td></tr>
+          <tr><td>2</td><td><strong>Токтогулова А.М.</strong></td><td>13 лет</td><td>16</td><td><span class="badge badge-yellow">Рассмотрение</span></td><td><span class="btn btn-success" style="padding:3px 10px;font-size:0.75em;">&#10003;</span> <span class="btn btn-danger" style="padding:3px 10px;font-size:0.75em;">&#10007;</span></td></tr>
+          <tr><td>3</td><td><strong>Сыдыкова Г.А.</strong></td><td>33 года</td><td>13</td><td><span class="badge badge-green">Утверждён</span></td><td style="opacity:0.3;">&#10003;</td></tr>
+          <tr><td>4</td><td><strong>Орозбекова Н.Ж.</strong></td><td>37 лет</td><td>13</td><td><span class="badge badge-green">Утверждён</span></td><td style="opacity:0.3;">&#10003;</td></tr>
+          <tr><td>5</td><td><strong>Эсенбаева Б.К.</strong></td><td>21 год</td><td>11</td><td><span class="badge badge-yellow">Рассмотрение</span></td><td><span class="btn btn-success" style="padding:3px 10px;font-size:0.75em;">&#10003;</span> <span class="btn btn-danger" style="padding:3px 10px;font-size:0.75em;">&#10007;</span></td></tr>
+        </tbody>
+      </table>
+      <p style="margin-top:10px; font-size:0.8em; opacity:0.35; text-align:center;">Резервный список скрыт от комиссии</p>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 15: Rejection flow -->
+<div class="slide bg-dark" id="slide-15">
+  <div class="slide-content">
+    <p class="label">Шаг 5.1</p>
+    <h2>Отклонение и автозамена</h2>
+    <p style="margin-bottom:20px; opacity:0.7;">При отклонении &mdash; система автоматически подставляет следующего по ранжиру в регионе</p>
+    <div style="display:flex; gap:24px; flex-wrap:wrap; justify-content:center;">
+      <div style="flex:1; max-width:500px;">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div><strong>Комиссия отклоняет кандидата</strong><p style="opacity:0.7; font-size:0.88em;">Указывается причина: несоответствие, нарушения и т.д.</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div><strong>Автоматическая замена</strong><p style="opacity:0.7; font-size:0.88em;">Система находит следующего по ранжиру <u>в том же регионе</u></p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div><strong>Квота сохраняется</strong><p style="opacity:0.7; font-size:0.88em;">Количество наград для региона не меняется</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div><strong>Повторная проверка</strong><p style="opacity:0.7; font-size:0.88em;">Процесс повторяется до исчерпания кандидатов</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1; max-width:400px;">
+        <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.2); border-radius:14px; padding:16px; margin-bottom:12px;">
+          <strong style="color:#fca5a5 !important;">&#10060; Комиссия НЕ видит резерв</strong>
+          <p style="opacity:0.7; font-size:0.88em; margin-top:6px;">Решение об отклонении принимается объективно, без знания о том, кто следующий</p>
+        </div>
+        <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.2); border-radius:14px; padding:16px;">
+          <strong style="color:#6ee7b7 !important;">&#10003; Система подставляет автоматически</strong>
+          <p style="opacity:0.7; font-size:0.88em; margin-top:6px;">Следующий по ранжиру в том же регионе занимает место без участия комиссии в выборе</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 16: Interactive demo -->
+<div class="slide bg-dark" id="slide-16">
+  <div class="slide-content">
+    <p class="label">Интерактивная демонстрация</p>
+    <h2>Отклонение и автоматическая замена</h2>
+    <div class="demo-panel" style="margin-top:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">Ыссык-Кульская область &mdash; квота: 5</h3>
+        <div>
+          <span class="badge badge-green" id="demoApproved">Утверждено: 5</span>
+          <span class="badge badge-red" id="demoRejected" style="margin-left:6px;">Отклонено: 0</span>
+        </div>
+      </div>
+      <table class="data-table" id="demoTable">
+        <thead><tr><th>&#8470;</th><th>ФИО</th><th>Баллы</th><th>Ранг</th><th>Статус</th><th>Действие</th></tr></thead>
+        <tbody id="demoBody"></tbody>
+      </table>
+      <div id="demoLog" style="margin-top:14px; padding:12px; background:rgba(255,255,255,0.04); border-radius:10px; font-size:0.88em; color:rgba(255,255,255,0.6); border:1px solid rgba(255,255,255,0.06); min-height:36px;">
+        Нажмите &laquo;Отклонить&raquo; чтобы увидеть автоматическую замену
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 17: Approval -->
+<div class="slide bg-dark" id="slide-17">
+  <div class="slide-content">
+    <p class="label">Шаг 6</p>
+    <h2>Утверждение списка награждаемых</h2>
+    <p style="margin-bottom:20px; opacity:0.7;">После рассмотрения всех кандидатов комиссия утверждает окончательный список</p>
+    <div class="demo-panel" style="max-width:900px;">
+      <h3 style="display:flex;justify-content:space-between;align-items:center;">
+        Итоговый список &mdash; все регионы
+        <span class="badge badge-green" style="font-size:0.85em;">Готов к утверждению</span>
+      </h3>
+      <table class="data-table" style="margin-top:14px;">
+        <thead><tr><th>Регион</th><th>Квота</th><th>Утверждено</th><th>Отклонено</th><th>Заменено</th><th>Статус</th></tr></thead>
+        <tbody>
+          <tr><td>Ыссык-Кульская</td><td>40</td><td style="color:#6ee7b7 !important;">40</td><td style="color:#fca5a5 !important;">3</td><td style="color:#93c5fd !important;">3</td><td><span class="badge badge-green">Готов</span></td></tr>
+          <tr><td>Баткенская</td><td>51</td><td style="color:#6ee7b7 !important;">51</td><td style="color:#fca5a5 !important;">1</td><td style="color:#93c5fd !important;">1</td><td><span class="badge badge-green">Готов</span></td></tr>
+          <tr><td>Ошская</td><td>104</td><td style="color:#6ee7b7 !important;">104</td><td style="color:#fca5a5 !important;">5</td><td style="color:#93c5fd !important;">5</td><td><span class="badge badge-green">Готов</span></td></tr>
+          <tr><td>Жалал-Абадская</td><td>98</td><td style="color:#6ee7b7 !important;">98</td><td style="color:#fca5a5 !important;">2</td><td style="color:#93c5fd !important;">2</td><td><span class="badge badge-green">Готов</span></td></tr>
+          <tr><td colspan="6" style="text-align:center; opacity:0.4;">... ещё 5 регионов ...</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px; text-align:center;">
+        <span class="btn btn-success" style="padding:12px 32px; font-size:1em;">&#10003; Утвердить список награждаемых</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 18: Order & Certificate -->
+<div class="slide bg-dark" id="slide-18">
+  <div class="slide-content">
+    <p class="label">Шаг 7</p>
+    <h2>Формирование приказа и грамоты</h2>
+    <p style="margin-bottom:20px; opacity:0.7;">После утверждения списка &mdash; автоматическое формирование приказа, запись в БД, генерация дизайна с QR</p>
+    <div style="display:flex; gap:30px; justify-content:center; align-items:flex-start; flex-wrap:wrap;">
+      <div style="flex:1; max-width:400px;">
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">1</div>
+            <div><strong>Кнопка &laquo;Издать приказ&raquo;</strong><p style="opacity:0.7; font-size:0.85em;">Становится доступна после утверждения списка комиссией</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">2</div>
+            <div><strong>Автоформирование приказа</strong><p style="opacity:0.7; font-size:0.85em;">Приказ генерируется с номером, датой и полным списком награждённых</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">3</div>
+            <div><strong>Запись в базу данных</strong><p style="opacity:0.7; font-size:0.85em;">Утверждённый список фиксируется в БД &mdash; данные доступны в архиве</p></div>
+          </div>
+          <div class="step">
+            <div class="step-num">4</div>
+            <div><strong>Дизайн по типу награды + QR</strong><p style="opacity:0.7; font-size:0.85em;">Автоматически формируется дизайн грамоты/знака с уникальным QR-кодом для проверки подлинности</p></div>
+          </div>
+        </div>
+      </div>
+      <div style="flex:1; max-width:420px;">
+        <div class="cert-mock">
+          <div style="font-size:1.8em; margin-bottom:6px;">&#127942;</div>
+          <div class="cert-title">Почётная грамота</div>
+          <div class="cert-text">Министерство просвещения<br>Кыргызской Республики</div>
+          <div style="border-top:1px solid #d97706; margin:10px 40px;"></div>
+          <div class="cert-text">Награждается</div>
+          <div class="cert-name">Жумабаев Алмаз Бакирович</div>
+          <div class="cert-text">за значительный вклад в развитие<br>образования Кыргызской Республики</div>
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px;">
+            <div style="text-align:left; font-size:0.8em; color:#92400e !important;">
+              <div>Приказ &#8470; 127</div>
+              <div>от 05.10.2026</div>
+            </div>
+            <div class="qr-placeholder">
+              <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:1px; width:40px; height:40px;">
+                <div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div>
+                <div style="background:#fff;border-radius:1px;"></div><div></div><div style="background:#fff;border-radius:1px;"></div><div></div><div style="background:#fff;border-radius:1px;"></div>
+                <div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div>
+                <div style="background:#fff;border-radius:1px;"></div><div></div><div></div><div></div><div style="background:#fff;border-radius:1px;"></div>
+                <div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div><div style="background:#fff;border-radius:1px;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <p style="margin-top:12px; font-size:0.82em; opacity:0.5;">QR-код ведёт на страницу верификации подлинности награды</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 19: Archive -->
+<div class="slide bg-dark" id="slide-19">
+  <div class="slide-content">
+    <p class="label">Архив</p>
+    <h2>История всех награждений</h2>
+    <p style="margin-bottom:16px; opacity:0.7;">Все созданные и утверждённые заявки сохраняются в системе. Полная история: кто, когда, какой тип награды, сколько выдано, на основании какого приказа.</p>
+    <div class="demo-panel" style="max-width:1050px;">
+      <h3 style="margin-bottom:12px;">Архив утверждённых награждений</h3>
+      <table class="data-table">
+        <thead><tr>
+          <th>Год</th><th>Памятная дата</th><th>Тип награды</th><th>Квота</th><th>Выдано</th><th>Приказ</th><th>Ответственный</th><th>Статус</th>
+        </tr></thead>
+        <tbody>
+          <tr><td>2024</td><td>5 октября</td><td>Почётная грамота</td><td>300</td><td style="color:#6ee7b7 !important;">300</td><td>&#8470; 89 от 01.10.2024</td><td>Асанов А.К.</td><td><span class="badge badge-green">Завершено</span></td></tr>
+          <tr><td>2024</td><td>25 мая</td><td>Нагрудный знак</td><td>150</td><td style="color:#6ee7b7 !important;">150</td><td>&#8470; 54 от 20.05.2024</td><td>Бекова Н.Т.</td><td><span class="badge badge-green">Завершено</span></td></tr>
+          <tr><td>2025</td><td>5 октября</td><td>Почётная грамота</td><td>500</td><td style="color:#6ee7b7 !important;">500</td><td>&#8470; 102 от 30.09.2025</td><td>Бекова Н.Т.</td><td><span class="badge badge-green">Завершено</span></td></tr>
+          <tr><td>2025</td><td>25 мая</td><td>Нагрудный знак</td><td>200</td><td style="color:#6ee7b7 !important;">200</td><td>&#8470; 61 от 19.05.2025</td><td>Асанов А.К.</td><td><span class="badge badge-green">Завершено</span></td></tr>
+          <tr><td>2026</td><td>25 мая</td><td>Почётная грамота</td><td>35</td><td style="color:#6ee7b7 !important;">35</td><td>&#8470; 45 от 20.05.2026</td><td>Асанов А.К.</td><td><span class="badge badge-green">Завершено</span></td></tr>
+          <tr><td>2026</td><td>5 октября</td><td>Нагрудный знак</td><td>1000</td><td style="color:#fcd34d !important;">-</td><td>-</td><td>Бекова Н.Т.</td><td><span class="badge badge-yellow">В работе</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 20: Flexibility -->
+<div class="slide bg-dark" id="slide-20">
+  <div class="slide-content">
+    <p class="label">Ключевое преимущество</p>
+    <h2>Универсальность и гибкость системы</h2>
+    <p style="margin-bottom:24px; opacity:0.7;">Система спроектирована не для нескольких фиксированных сценариев, а как <strong>универсальный инструмент</strong> с гибкой настройкой по всем параметрам</p>
+    <div style="display:flex; gap:20px; flex-wrap:wrap; justify-content:center;">
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#9881;</span>
+        <h3>7 уровней фильтрации</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Не ограничиваясь 1-2 критериями &mdash; система позволяет комбинировать все 7 уровней для точного подбора кандидатов под любой тип награждения</p>
+      </div>
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#128295;</span>
+        <h3>Гибкая настройка</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Каждый критерий можно включить/выключить: от всех типов организаций до конкретной специальности в одном регионе</p>
+      </div>
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#128260;</span>
+        <h3>Любая комбинация</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Можно наградить только учителей начальных классов из малокомплектных школ Нарынской области &mdash; или всех педагогов всех типов</p>
+      </div>
+    </div>
+    <div style="margin-top:24px; display:flex; gap:16px; flex-wrap:wrap; justify-content:center;">
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#128683;</span>
+        <h3>Скрытый резерв</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Комиссия <strong>не видит</strong> кто следующий по списку &mdash; решения принимаются объективно, без возможности предвзятого выбора</p>
+      </div>
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#128202;</span>
+        <h3>Автоматический ранжир</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Баллы, стаж, ранг по республике и региону рассчитываются автоматически &mdash; исключён человеческий фактор</p>
+      </div>
+      <div class="card-glass" style="max-width:300px;">
+        <span class="card-icon">&#128218;</span>
+        <h3>Полный архив</h3>
+        <p style="opacity:0.7; font-size:0.88em;">Вся история награждений: кто, когда, какую награду, сколько выдано, на основании какого приказа &mdash; всё в одной системе</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SLIDE 21: Final -->
+<div class="slide bg-dark" id="slide-21">
+  <div class="slide-content">
+    <p class="label">Итого</p>
+    <h2 style="font-size:1.8em;">Полный цикл работы АИС</h2>
+    <div class="flow" style="margin:20px 0;">
+      <div class="flow-item" style="background:rgba(59,130,246,0.3);">&#128209; Заявка</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(139,92,246,0.3);">&#127919; 7 критериев</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(14,165,233,0.3);">&#128203; Список</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(16,185,129,0.3);">&#9878; Комиссия</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(234,179,8,0.3);">&#10003; Утверждение</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(245,158,11,0.3);">&#128220; Приказ</div>
+      <div class="flow-arrow">&rarr;</div>
+      <div class="flow-item" style="background:rgba(236,72,153,0.3);">&#127942; Грамота+QR</div>
+    </div>
+    <ul class="flist" style="margin-top:24px;">
+      <li>Универсальная система с 7 уровнями гибкой фильтрации</li>
+      <li>Автоматическое ранжирование по баллам и стажу</li>
+      <li>Квоты распределяются по 9 регионам пропорционально</li>
+      <li>Комиссия НЕ видит резервный список &mdash; объективность решений</li>
+      <li>При отклонении &mdash; автозамена следующим по ранжиру в регионе</li>
+      <li>Утверждение списка &rarr; Формирование приказа &rarr; Запись в БД</li>
+      <li>Автоматический дизайн грамоты с QR-кодом верификации</li>
+      <li>Полный архив всех награждений для истории и отчётности</li>
+    </ul>
+    <div style="margin-top:32px;">
+      <span class="btn btn-primary" style="font-size:1.05em; padding:14px 36px;">Спасибо за внимание!</span>
+    </div>
+  </div>
+</div>
+
+<!-- Navigation -->
+<div class="nav">
+  <a href="index.html" style="background:rgba(255,255,255,0.1);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1.1em;transition:all 0.3s;display:flex;align-items:center;justify-content:center;text-decoration:none;" title="На главную">&#8962;</a>
+  <button onclick="prevSlide()" id="prevBtn" disabled>&#9664;</button>
+  <div class="counter"><span id="currentSlide">1</span> / <span id="totalSlides">22</span></div>
+  <button onclick="nextSlide()" id="nextBtn">&#9654;</button>
+</div>
+
+<script>
+let current = 0;
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+document.getElementById('totalSlides').textContent = total;
+
+function showSlide(n) {
+  slides.forEach((s, i) => { s.classList.remove('active'); });
+  slides[n].classList.add('active');
+  current = n;
+  document.getElementById('currentSlide').textContent = n + 1;
+  document.getElementById('prevBtn').disabled = n === 0;
+  document.getElementById('nextBtn').disabled = n === total - 1;
+  document.getElementById('progressBar').style.width = ((n + 1) / total * 100) + '%';
+}
+
+function nextSlide() { if (current < total - 1) showSlide(current + 1); }
+function prevSlide() { if (current > 0) showSlide(current - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+});
+
+// Demo with fictional names
+const demoAll = [
+  { name: "Жумабаев А.Б.", score: 16, rank: 1, status: "approved" },
+  { name: "Токтогулова А.М.", score: 16, rank: 2, status: "approved" },
+  { name: "Сыдыкова Г.А.", score: 13, rank: 3, status: "approved" },
+  { name: "Орозбекова Н.Ж.", score: 13, rank: 4, status: "approved" },
+  { name: "Эсенбаева Б.К.", score: 11, rank: 5, status: "approved" },
+  { name: "Маматов К.Т.", score: 10, rank: 6, status: "reserve" },
+  { name: "Абдыкеримова Ч.С.", score: 9, rank: 7, status: "reserve" },
+  { name: "Турдубаев Э.Н.", score: 9, rank: 8, status: "reserve" },
+  { name: "Касымова Д.А.", score: 8, rank: 9, status: "reserve" },
+];
+let demoState = JSON.parse(JSON.stringify(demoAll));
+let rejectedCount = 0;
+let logMessages = [];
+
+function renderDemo() {
+  const tbody = document.getElementById('demoBody');
+  tbody.innerHTML = '';
+  let approvedN = 0;
+  demoState.forEach((c, i) => {
+    if (c.status === 'reserve') return;
+    const tr = document.createElement('tr');
+    if (c.status === 'rejected') tr.classList.add('rejected');
+    if (c.status === 'replacement') tr.classList.add('replacement');
+    let statusHtml = '', actionHtml = '';
+    if (c.status === 'approved') {
+      approvedN++;
+      statusHtml = '<span class="badge badge-green">Утверждён</span>';
+      actionHtml = `<button class="btn btn-danger" style="padding:4px 12px;font-size:0.78em;" onclick="rejectCandidate(${i})">Отклонить</button>`;
+    } else if (c.status === 'rejected') {
+      statusHtml = '<span class="badge badge-red">Отклонён</span>';
+      actionHtml = '&mdash;';
+    } else if (c.status === 'replacement') {
+      approvedN++;
+      statusHtml = '<span class="badge badge-blue">Замена</span>';
+      actionHtml = `<button class="btn btn-danger" style="padding:4px 12px;font-size:0.78em;" onclick="rejectCandidate(${i})">Отклонить</button>`;
+    }
+    tr.innerHTML = `<td>${c.rank}</td><td><strong>${c.name}</strong></td><td>${c.score}</td><td>${c.rank}</td><td>${statusHtml}</td><td>${actionHtml}</td>`;
+    tbody.appendChild(tr);
+  });
+  document.getElementById('demoApproved').textContent = 'Утверждено: ' + approvedN;
+  document.getElementById('demoRejected').textContent = 'Отклонено: ' + rejectedCount;
+  document.getElementById('demoLog').innerHTML = logMessages.length
+    ? logMessages.map(m => '<div style="margin-bottom:4px;">' + m + '</div>').join('')
+    : 'Нажмите &laquo;Отклонить&raquo; чтобы увидеть автоматическую замену';
+}
+
+function rejectCandidate(idx) {
+  demoState[idx].status = 'rejected';
+  rejectedCount++;
+  const rejName = demoState[idx].name;
+  const nextReserve = demoState.find(c => c.status === 'reserve');
+  if (nextReserve) {
+    nextReserve.status = 'replacement';
+    logMessages.unshift(`<span style="color:#fca5a5;">&#10060; ${rejName}</span> &rarr; <span style="color:#6ee7b7;">&#10003; ${nextReserve.name}</span> (ранг ${nextReserve.rank}) автоматически включён`);
+  } else {
+    logMessages.unshift(`<span style="color:#fca5a5;">&#10060; ${rejName}</span> &rarr; <span style="opacity:0.4;">Нет кандидатов в резерве</span>`);
+  }
+  renderDemo();
+}
+
+renderDemo();
+showSlide(0);
+</script>
+</body>
+</html>

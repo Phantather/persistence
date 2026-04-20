@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>АИС Мугалим — Презентации</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter','Segoe UI',sans-serif;background:#0f172a;color:#fff;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:40px 20px;background:linear-gradient(160deg,#0f172a 0%,#1e293b 40%,#162544 100%);}
+  body::before{content:'';position:fixed;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 50%,rgba(59,130,246,0.07) 0%,transparent 50%),radial-gradient(circle at 70% 30%,rgba(139,92,246,0.05) 0%,transparent 50%);z-index:0;}
+  .container{position:relative;z-index:1;text-align:center;max-width:900px;width:100%;}
+  .label{font-size:0.75em;text-transform:uppercase;letter-spacing:0.15em;opacity:0.5;font-weight:600;margin-bottom:12px;}
+  h1{font-size:2.4em;margin-bottom:12px;font-weight:800;letter-spacing:-0.02em;}
+  .sub{font-size:1.1em;opacity:0.7;font-weight:300;margin-bottom:40px;}
+  .cards{display:flex;flex-wrap:wrap;gap:24px;justify-content:center;}
+  .card{background:rgba(255,255,255,0.07);backdrop-filter:blur(16px);border-radius:20px;padding:36px 32px;width:380px;border:1px solid rgba(255,255,255,0.1);text-align:left;transition:transform 0.3s,box-shadow 0.3s;text-decoration:none;color:#fff;}
+  .card:hover{transform:translateY(-6px);box-shadow:0 20px 60px rgba(0,0,0,0.4);border-color:rgba(59,130,246,0.3);}
+  .card .icon{font-size:2.4em;margin-bottom:16px;display:block;}
+  .card h2{font-size:1.4em;font-weight:700;margin-bottom:8px;}
+  .card p{font-size:0.95em;opacity:0.6;line-height:1.6;}
+  .card .arrow{display:inline-block;margin-top:16px;font-size:0.9em;font-weight:600;color:#93c5fd;transition:transform 0.3s;}
+  .card:hover .arrow{transform:translateX(6px);}
+  footer{position:relative;z-index:1;margin-top:48px;opacity:0.25;font-size:0.85em;}
+</style>
+</head>
+<body>
+<div class="container">
+  <p class="label">Министерство просвещения Кыргызской Республики</p>
+  <h1>АИС «Мугалим»</h1>
+  <p class="sub">Презентации модулей системы</p>
+  <div class="cards">
+    <a href="Конкурс_презентация.html" class="card">
+      <span class="icon">&#9878;</span>
+      <h2>Тестирование и конкурс руководителей</h2>
+      <p>Полный цикл: от плана тестирования до назначения руководителей образовательных организаций</p>
+      <span class="arrow">Открыть презентацию &rarr;</span>
+    </a>
+    <a href="Награды_презентация.html" class="card">
+      <span class="icon">&#127942;</span>
+      <h2>Награждения педагогов</h2>
+      <p>Автоматизированная система награждения педагогических работников</p>
+      <span class="arrow">Открыть презентацию &rarr;</span>
+    </a>
+  </div>
+</div>
+<footer>2026</footer>
+</body>
+</html>
